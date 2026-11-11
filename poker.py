@@ -20,82 +20,114 @@ def pull_cards(amount):
 
     for i in range(amount):
         pos = random.randint(0, len(stack) - 1)
-        card = stack.pop[pos]
+        card = stack.pop(pos)
         picked.append(card)
 
     return picked
 
 
+# wie viele Symbole kommen genau amount mal vor
+# zb amount = 2 und Ergebnis 1 -> ein Paar
+def sameSymbols(cards, amount):
+    counter = {}
+    for symbol in range(13):
+        counter[symbol] = 0
 
-# Anfangsgeruest von karten
-def card_name():
-    colors = ["hearts", "diamonds", "spades", "clubs"]
-    symbols = ["2", "3", "4", "5", "6", "7", "8", "9", "10","jack", "queen", "king", "ace"]
-    
+    for card in cards:
+        counter[card % 13] = counter[card % 13] + 1
 
+    result = 0
+    for symbol in counter:
+        if counter[symbol] == amount:
+            result = result + 1
+    return result
 
-
-# Kombinationen: Royal Flush, Straight Flush, quads, full house
-#       flush, straight, three of a kind, two pairs, pair, high card
 
 # Methoden fuer die Kombinationen
-def highCard():
-    pass
+def pair(cards):
+    return sameSymbols(cards, 2) == 1
 
-def pair():
-    pass
+def twoPair(cards):
+    return sameSymbols(cards, 2) == 2
 
-def twoPair():
-    pass
+def threeOfAKind(cards):
+    return sameSymbols(cards, 3) == 1
 
-def threeOfAKind():
-    pass
+def quads(cards):
+    return sameSymbols(cards, 4) == 1
 
-def straight():
-    pass
+def fullHouse(cards):
+    return threeOfAKind(cards) and pair(cards)
 
-def flush():
-    pass
+def flush(cards):
+    for card in cards:
+        if card // 13 != cards[0] // 13:
+            return False
+    return True
 
-def fullHouse():
-    pass
+def straight(cards):
+    symbols = []
+    for card in cards:
+        symbols.append(card % 13)
+    symbols = sorted(symbols)
 
-def quads():
-    pass
-
-def straightFlush():
-    pass
-
-def royalFlush():
-    pass
+    # Ass unten (A 2 3 4 5) wird hier nicht gezaehlt
+    for i in range(4):
+        if symbols[i] + 1 != symbols[i + 1]:
+            return False
+    return True
 
 
-# welche Kombination zutrifft
-def findCombination():
-    if royalFlush():
-        return "royalFlush"
-    elif straightFlush():
+# welche Kombination zutrifft (von oben nach unten)
+def findCombination(cards):
+    if straight(cards) and flush(cards):
         return "straightFlush"
-    elif quads():
+    elif quads(cards):
         return "quads"
-    elif fullHouse():
+    elif fullHouse(cards):
         return "fullHouse"
-    elif flush():
+    elif flush(cards):
         return "flush"
-    elif straight():
+    elif straight(cards):
         return "straight"
-    elif threeOfAKind():
+    elif threeOfAKind(cards):
         return "threeOfAKind"
-    elif twoPair():
+    elif twoPair(cards):
         return "twoPair"
-    elif pair():
+    elif pair(cards):
         return "pair"
     else:
         return "highCard"
 
 
+# wie viele_ziehungen bei Lotto
+def manyGames(games):
+    statistic = {"straightFlush": 0, "quads": 0, "fullHouse": 0,
+                 "flush": 0, "straight": 0, "threeOfAKind": 0,
+                 "twoPair": 0, "pair": 0, "highCard": 0}
+
+    for i in range(games):
+        cards = pull_cards(5)
+        combination = findCombination(cards)
+        statistic[combination] = statistic[combination] + 1
+
+    return statistic
+
 
 # Prozentuellen Anteil
-def percent():
-    # percent = count / games * 100
-    pass
+# echte Werte (Wikipedia): straightFlush 0.0015, quads 0.024,
+#   fullHouse 0.14, flush 0.2, straight 0.39, threeOfAKind 2.11,
+#   twoPair 4.75, pair 42.26, highCard 50.12
+def percent(statistic, games):
+    for combination in statistic:
+        print(combination, statistic[combination] / games * 100, "%")
+
+
+def main():
+    games = 100000
+    statistic = manyGames(games)
+    print(statistic)
+    percent(statistic, games)
+
+
+main()
